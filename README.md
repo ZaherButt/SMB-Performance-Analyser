@@ -45,7 +45,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 
 # FAQ
 Q: Can I use a folder of files instead of a single file? 
-A: The script processes one file per run. To test multiple files, run the script separately for each file or use a wrapper script.
+A: The script processes one file per run. To test multiple files, run the script separately for each file.
 
 Q: Does it auto-detect file size? 
 A: Yes, the script logs the actual size of the file used for each run. 
