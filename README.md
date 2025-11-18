@@ -43,6 +43,65 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 | `-LogCsv`                | Path to the CSV log file                                         | `C:\Software\copy\perf_runs_v1.csv`| `-LogCsv "D:\PerfLogs\my_test_results.csv"`     |
 
 
+## Auto‑Detected & Collected Metadata
+
+The script automatically discovers environment, network, and run‑time metrics and writes them to the console and CSV (when available). No manual input is needed for the items below.
+
+### Client / VPN Detection
+- **Active access product**: determines whether one of the following is active and sets `ProductUsed`:
+  - `Cloudflare WARP`
+  - `WireGuard`
+  - `Entra Private Access` (Global Secure Access)
+  - `None`
+- **Client version (best‑effort)**:
+  - **WARP**: from uninstall registry and/or executable file version
+  - **WireGuard**: from uninstall registry and/or `C:\Program Files\WireGuard\wireguard.exe`
+  - **Entra Private Access (GSA)**: from running service executables and/or uninstall registry
+- **Derived field**: `VpnClientVersion` (populated when a single client is active)
+
+### Device Identity & Host
+- **DeviceId** and **TenantId** (parsed from `dsregcmd /status`)
+- **Hostname** (`$env:COMPUTERNAME`)
+- **Operating System** (caption, version, build) via CIM/WMI
+- **Active Power Plan** (from `powercfg /GETACTIVESCHEME`)
+
+### WAN / Public Network Context (best‑effort)
+- **WanIP**
+- **WanCity**, **WanRegion**, **WanCountry**
+- **WanOrg** (ISP/ASN org where available)
+- **WanSource** (which public API responded)
+> Collected by querying multiple public IP info endpoints with graceful fallback.
+
+### Network Route & Interface Snapshot
+- **ActiveIfAlias** (interface alias used for the route)
+- **ActiveIfMtu**
+- **ActiveIfLinkSpeed**
+- **Server IP resolution** (attempts to resolve the UNC server host to an IPv4 address for routing context)
+
+### Copy Run Telemetry (per run)
+- **Direction**: `Download` or `Upload`
+- **StartUTC** / **EndUTC**
+- **Seconds** (elapsed time)
+- **FileMB** (size auto‑computed from the **source** file of that run)
+- **Mbps** (calculated from size and elapsed time)
+- **SourcePath** / **TargetPath**
+- **CopyEngine** (`CopyItem` by default; Explorer UI engine if you switch it in the script)
+- **ScriptVersion**
+
+### Live External Ping (per run, to 8.8.8.8)
+- **PingAvgMs**
+- **PingMinMs**
+- **PingMaxMs**
+- **PingLossPct**
+> A background job samples once per second; stats are snapshotted after each run.
+
+### Connector Metadata (only when Entra Private Access is active)
+- **ConnectorVersion**
+- **ConnectorVMLocation**
+- **ConnectorRegion**
+> Values are prompted with sensible defaults; where possible, client/service versions are also detected as noted above.
+
+
 # FAQ
 Q: Can I use a folder of files instead of a single file? 
 A: The script processes one file per run. To test multiple files, run the script separately for each file.
