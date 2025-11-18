@@ -25,7 +25,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
         - CSV: C:\Software\copy\perf_runs_v1.csv
 
 2. Run the script:
-    .\ComparativeSMBPerfScript_v1.ps1
+    .\SMBPerformanceComparisonScript_v1.ps1
 
 3. View results
     - Console output shows per-run stats and network health.
