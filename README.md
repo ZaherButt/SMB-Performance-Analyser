@@ -86,7 +86,6 @@ The script automatically discovers environment, network, and run‑time metrics 
 - **FileMB** (size auto‑computed from the **source** file of that run)
 - **Mbps** (calculated from size and elapsed time)
 - **SourcePath** / **TargetPath**
-- **CopyEngine** (`CopyItem` by default; Explorer UI engine if you switch it in the script)
 - **ScriptVersion**
 
 ### Live External Ping (per run, to 8.8.8.8)
