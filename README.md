@@ -1,6 +1,5 @@
 # SMB-Performance-Analyser
 A PowerShell script for benchmarking SMB file copy performance, capturing network health, VPN/client context, and environment metadata—all logged to a CSV for easy analysis and sharing.
-Table of Contents
 
 # Overview
 This script helps you measure SMB file copy throughput (download and upload) between your client and a remote share, while logging live network health (ping), VPN/client detection, and system details. Results are saved to a CSV for easy comparison across scenarios (different VPNs, connectors, client locations, file sizes, etc.).
