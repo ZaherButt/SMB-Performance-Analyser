@@ -1,8 +1,10 @@
 # SMB-Performance-Analyser
 A PowerShell script for benchmarking SMB file copy performance, capturing network health, VPN/client context, and environment metadata—all logged to a CSV for easy analysis and sharing.
 
+
 # Overview
 This script helps you measure SMB file copy throughput (download and upload) between your client and a remote share, while logging live network health (ping), VPN/client detection, and system details. Results are saved to a CSV for easy comparison across scenarios (different VPNs, connectors, client locations, file sizes, etc.).
+
 
 # Features
 - Download & Upload tests with configurable runs and wait intervals
@@ -11,6 +13,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 - Environment logging: OS version, power plan, WAN IP, NIC details
 - Interactive prompts for client location and connector metadata
 - Flexible CSV output for downstream analysis
+
 
 # Quick Start
 1. Prepare your test file:
@@ -28,6 +31,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
     - Console output shows per-run stats and network health.
     - CSV log saved to C:\Software\copy\perf_runs_v1.csv (customisable).   
 
+
 # Parameters
 | Parameter                | Description                                                      | Default Value                      | Example Usage                                  |
 |--------------------------|------------------------------------------------------------------|------------------------------------|------------------------------------------------|
@@ -38,15 +42,20 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 | `-WaitBetweenRunsSeconds`| Seconds to wait between runs                                     | `5`                                | `-WaitBetweenRunsSeconds 10`                   |
 | `-LogCsv`                | Path to the CSV log file                                         | `C:\Software\copy\perf_runs_v1.csv`| `-LogCsv "D:\PerfLogs\my_test_results.csv"`     |
 
+
 # FAQ
 Q: Can I use a folder of files instead of a single file?
+
 A: The script processes one file per run. To test multiple files, run the script separately for each file or use a wrapper script.
 
 Q: Does it auto-detect file size?
+
 A: Yes, the script logs the actual size of the file used for each run.
 
 Q: How do I change where logs are saved?
+
 A: Use the -LogCsv parameter to specify your preferred log file location.
 
 Q: What happens if a file is missing?
+
 A: The script exits with a clear error message and does not log a row for that run.
