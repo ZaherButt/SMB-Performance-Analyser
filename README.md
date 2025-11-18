@@ -5,28 +5,28 @@ A PowerShell script for benchmarking SMB file copy performance, capturing networ
 This script helps you measure SMB file copy throughput (download and upload) between your client and a remote share, while logging live network health (ping), VPN/client detection, and system details. Results are saved to a CSV for easy comparison across scenarios (different VPNs, connectors, client locations, file sizes, etc.).
 
 # Features
-Download & Upload tests with configurable runs and wait intervals
-Live network health (ping stats) captured during each copy
-VPN/client detection (Cloudflare WARP, WireGuard, Entra Private Access)
-Environment logging: OS version, power plan, WAN IP, NIC details
-Interactive prompts for client location and connector metadata
-Flexible CSV output for downstream analysis
+- Download & Upload tests with configurable runs and wait intervals
+- Live network health (ping stats) captured during each copy
+- VPN/client detection (Cloudflare WARP, WireGuard, Entra Private Access)
+- Environment logging: OS version, power plan, WAN IP, NIC details
+- Interactive prompts for client location and connector metadata
+- Flexible CSV output for downstream analysis
 
 # Quick Start
 1. Prepare your test file:
 
-   Place your ISO on both the remote SMB share and your local folder. Customise logfile as needed.
-   Default paths:
-     Remote: \\10.10.5.7\MyShare\test_file.iso
-     Local: C:\Software\copy\test_file.iso
-     CSV: C:\Software\copy\perf_runs_v1.csv
+   - Place your ISO on both the remote SMB share and your local folder. Customise logfile as needed.
+   - Default paths:
+        -Remote: \\10.10.5.7\MyShare\test_file.iso
+        - Local: C:\Software\copy\test_file.iso
+        - CSV: C:\Software\copy\perf_runs_v1.csv
 
 2. Run the script:
     .\ComparativeSMBPerfScript_v1.ps1
 
 3. View results
-    Console output shows per-run stats and network health.
-    CSV log saved to C:\Software\copy\perf_runs_v1.csv (customisable).   
+    - Console output shows per-run stats and network health.
+    - CSV log saved to C:\Software\copy\perf_runs_v1.csv (customisable).   
 
 # Parameters
 | Parameter                | Description                                                      | Default Value                      | Example Usage                                  |
