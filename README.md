@@ -43,6 +43,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 | `-LogCsv`                | Path to the CSV log file                                         | `C:\Software\copy\perf_runs_v1.csv`| `-LogCsv "D:\PerfLogs\my_test_results.csv"`     |
 
 
+
 ## Auto‑Detected & Collected Metadata
 
 The script automatically discovers environment, network, and run‑time metrics and writes them to the console and CSV (when available). No manual input is needed for the items below.
