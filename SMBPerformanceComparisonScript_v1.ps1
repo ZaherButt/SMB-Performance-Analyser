@@ -1,22 +1,22 @@
 #requires -version 5.1
 <#
- ZahersComparativeSMBPerfScript_v1.ps1
+ ZahersComparativeSMBPerfScript_v1.3.ps1
 #>
 
 param(
-    [string]$RemoteFolder = "\\10.10.5.7\MyShare",
+    [string]$RemoteFolder = "\\epa01.cyberdyne.local\software",
     [string]$LocalFolder  = "C:\Software\copy",
-    [string]$FileName     = "test_file.iso",
+    [string]$FileName     = "200mb.pdf",
     [int]$Runs = 3,
     [int]$WaitBetweenRunsSeconds = 5,
     [switch]$AcceptDefaults,
-    [string]$LogCsv = "C:\Software\copy\perf_runs_v1.csv",
+    [string]$LogCsv = "C:\Software\copy\perf_runs_v1.3.csv",
     [switch]$Zaher
 )
 
 $ErrorActionPreference = 'Continue'
 $CopyEngine    = 'CopyItem'
-$ScriptVersion = 'v1'
+$ScriptVersion = 'v1.3'
 $ConnectorVersion = 'N/A'
 $ConnectorVMLocation = 'N/A'
 $ConnectorRegion = 'N/A'
@@ -367,7 +367,7 @@ Enter A-G or Z
     $Hostname = $pick.Hostname
 
     # GSA-only connector prompts; defaults follow selection
-    $defaultConnectorVersion  = "1.5.4522.0"
+    $defaultConnectorVersion  = "1.5.4594.0"
     $defaultConnectorVMLocation = $pick.ClientCityCountry
     $defaultConnectorRegion   = "EMEA"
     if ($gsa.Active) {
@@ -376,9 +376,9 @@ Enter A-G or Z
         Write-Host "-------------------------------------" -ForegroundColor Blue
         $in = Read-Host ("Connector Version (Enter for '{0}')" -f $defaultConnectorVersion)
         $ConnectorVersion    = if([string]::IsNullOrWhiteSpace($in)){ $defaultConnectorVersion } else { $in }
-        $in = Read-Host ("Connector VM Location (Enter for '{0}')" -f $defaultConnectorVMLocation)
+        $in = Read-Host ("Connector Server Location (Enter for '{0}')" -f $defaultConnectorVMLocation)
         $ConnectorVMLocation = if([string]::IsNullOrWhiteSpace($in)){ $defaultConnectorVMLocation } else { $in }
-        $in = Read-Host ("Connector Region (Enter for '{0}')" -f $defaultConnectorRegion)
+        $in = Read-Host ("Connector Group Region (Enter for '{0}')" -f $defaultConnectorRegion)
         $ConnectorRegion     = if([string]::IsNullOrWhiteSpace($in)){ $defaultConnectorRegion } else { $in }
     }
 }
@@ -411,7 +411,7 @@ if (-not $Zaher) {
     $clientSel = [pscustomobject]@{ ClientCityCountry = $ClientLocation; Hostname = $Hostname }
 
     # GSA-only connector prompts (normal)
-    $defaultConnectorVersion  = "1.5.4522.0"
+    $defaultConnectorVersion  = "1.5.4594.0"
     $defaultConnectorVMLocation = "UK South"
     $defaultConnectorRegion   = "EMEA"
     if ($gsa.Active) {
@@ -420,9 +420,9 @@ if (-not $Zaher) {
         Write-Host "-------------------------------------" -ForegroundColor Blue
         $in = Read-Host ("Connector Version (Enter for '{0}')" -f $defaultConnectorVersion)
         $ConnectorVersion    = if([string]::IsNullOrWhiteSpace($in)){ $defaultConnectorVersion } else { $in }
-        $in = Read-Host ("Connector VM Location (Enter for '{0}')" -f $defaultConnectorVMLocation)
+        $in = Read-Host ("Connector Server Location (Enter for '{0}')" -f $defaultConnectorVMLocation)
         $ConnectorVMLocation = if([string]::IsNullOrWhiteSpace($in)){ $defaultConnectorVMLocation } else { $in }
-        $in = Read-Host ("Connector Region (Enter for '{0}')" -f $defaultConnectorRegion)
+        $in = Read-Host ("Connector Group Region (Enter for '{0}')" -f $defaultConnectorRegion)
         $ConnectorRegion     = if([string]::IsNullOrWhiteSpace($in)){ $defaultConnectorRegion } else { $in }
     }
 }
@@ -666,62 +666,6 @@ if(-not (Test-Path -LiteralPath $srcPathUL)){
 }
 
 if(-not $Zaher){ Write-Host "" }
-Write-Host "Mode: Download" -ForegroundColor Blue
-Write-Host "-------------" -ForegroundColor Blue
-# display-only: quote the path so \\ renders correctly; variables remain untouched for copy ops
-Write-Host ("Source : '{0}'" -f $srcPathDL) -ForegroundColor Gray
-Write-Host ("Destination : '{0}'" -f $dstPathDL) -ForegroundColor Gray
-
-if(-not (Path-Exists $srcPathDL)){
-    Write-Host ("Source not found on remote: {0}" -f (ForDisplay $srcPathDL)) -ForegroundColor Yellow
-    exit 12
-}
-
-1..$Runs | ForEach-Object {
-    $run = $_
-
-    # --- Start live ticker BEFORE copy begins (best-effort; PS 5.1 may defer UI) ---
-    Start-LivePingTicker -PingJobId $extJob.Id
-
-    $start=(Get-Date).ToUniversalTime()
-    $prev = $ProgressPreference
-    try {
-        $ProgressPreference = 'SilentlyContinue'
-        $res = Invoke-FileCopy -SourcePath $srcPathDL -DestPath $dstPathDL
-    } finally {
-        $ProgressPreference = $prev
-        # --- Stop ticker immediately when copy ends ---
-        Stop-LivePingTicker
-    }
-    $end=(Get-Date).ToUniversalTime()
-
-    if(-not $res.Ok){ Write-Host ("Download Run {0} failed: {1}" -f $run,(ForDisplay $res.Error)) -ForegroundColor Red; exit 20 }
-    $bytes=(Get-Item -LiteralPath $srcPathDL).Length
-    $fileMB=[math]::Round($bytes/1MB,2)
-    Write-Host ("[OK] Download Run {0}: {1:N2}s @ {2:N2} Mbps" -f $run,$res.Seconds,$res.Mbps) -ForegroundColor Green
-
-    # One-off snapshot AFTER run (stable) for console & CSV
-    $extStats = Get-PingJobStats -Job $extJob
-    if($extStats){
-        Write-Host ("Network health (live): 8.8.8.8 avg={0} ms min={1} max={2} loss={3}%" -f $extStats.AvgMs,$extStats.MinMs,$extStats.MaxMs,$extStats.LossPct)
-    } else {
-        Write-Host "Network health (live): external ping stats unavailable this run." -ForegroundColor Yellow
-    }
-    # PS 5.1-safe variables for CSV
-    $pingAvg=$null; $pingMin=$null; $pingMax=$null; $pingLoss=$null
-    if($extStats){ $pingAvg=$extStats.AvgMs; $pingMin=$extStats.MinMs; $pingMax=$extStats.MaxMs; $pingLoss=$extStats.LossPct }
-
-    Write-LogRow -Direction 'Download' -Run $run -StartUtc $start -EndUtc $end -Seconds $res.Seconds -Mbps $res.Mbps `
-      -FileMB $fileMB -SourcePath $srcPathDL -TargetPath $dstPathDL -Tcp445LatencyMsParam $null -Pre $pre `
-      -PingAvgMs $pingAvg -PingMinMs $pingMin -PingMaxMs $pingMax -PingLossPct $pingLoss
-
-    if($run -lt $Runs){
-        Write-Host (" Waiting {0} seconds before next run..." -f $WaitBetweenRunsSeconds) -ForegroundColor Gray
-        Start-Sleep -Seconds $WaitBetweenRunsSeconds
-    }
-}
-
-Write-Host ""
 Write-Host "Mode: Upload" -ForegroundColor Blue
 Write-Host "-----------" -ForegroundColor Blue
 # display-only: quote the path so \\ renders correctly; variables remain untouched for copy ops
@@ -777,5 +721,62 @@ if(-not (Path-Exists $srcPathUL)){
     }
 }
 
-try{ Stop-Job $extJob -ErrorAction SilentlyContinue } catch {}
+
+Write-Host "" 
+Write-Host "Mode: Download" -ForegroundColor Blue
+Write-Host "-------------" -ForegroundColor Blue
+# display-only: quote the path so \\ renders correctly; variables remain untouched for copy ops
+Write-Host ("Source : '{0}'" -f $srcPathDL) -ForegroundColor Gray
+Write-Host ("Destination : '{0}'" -f $dstPathDL) -ForegroundColor Gray
+
+if(-not (Path-Exists $srcPathDL)){
+    Write-Host ("Source not found on remote: {0}" -f (ForDisplay $srcPathDL)) -ForegroundColor Yellow
+    exit 12
+}
+
+1..$Runs | ForEach-Object {
+    $run = $_
+
+    # --- Start live ticker BEFORE copy begins (best-effort; PS 5.1 may defer UI) ---
+    Start-LivePingTicker -PingJobId $extJob.Id
+
+    $start=(Get-Date).ToUniversalTime()
+    $prev = $ProgressPreference
+    try {
+        $ProgressPreference = 'SilentlyContinue'
+        $res = Invoke-FileCopy -SourcePath $srcPathDL -DestPath $dstPathDL
+    } finally {
+        $ProgressPreference = $prev
+        # --- Stop ticker immediately when copy ends ---
+        Stop-LivePingTicker
+    }
+    $end=(Get-Date).ToUniversalTime()
+
+    if(-not $res.Ok){ Write-Host ("Download Run {0} failed: {1}" -f $run,(ForDisplay $res.Error)) -ForegroundColor Red; exit 20 }
+    $bytes=(Get-Item -LiteralPath $srcPathDL).Length
+    $fileMB=[math]::Round($bytes/1MB,2)
+    Write-Host ("[OK] Download Run {0}: {1:N2}s @ {2:N2} Mbps" -f $run,$res.Seconds,$res.Mbps) -ForegroundColor Green
+
+    # One-off snapshot AFTER run (stable) for console & CSV
+    $extStats = Get-PingJobStats -Job $extJob
+    if($extStats){
+        Write-Host ("Network health (live): 8.8.8.8 avg={0} ms min={1} max={2} loss={3}%" -f $extStats.AvgMs,$extStats.MinMs,$extStats.MaxMs,$extStats.LossPct)
+    } else {
+        Write-Host "Network health (live): external ping stats unavailable this run." -ForegroundColor Yellow
+    }
+    # PS 5.1-safe variables for CSV
+    $pingAvg=$null; $pingMin=$null; $pingMax=$null; $pingLoss=$null
+    if($extStats){ $pingAvg=$extStats.AvgMs; $pingMin=$extStats.MinMs; $pingMax=$extStats.MaxMs; $pingLoss=$extStats.LossPct }
+
+    Write-LogRow -Direction 'Download' -Run $run -StartUtc $start -EndUtc $end -Seconds $res.Seconds -Mbps $res.Mbps `
+      -FileMB $fileMB -SourcePath $srcPathDL -TargetPath $dstPathDL -Tcp445LatencyMsParam $null -Pre $pre `
+      -PingAvgMs $pingAvg -PingMinMs $pingMin -PingMaxMs $pingMax -PingLossPct $pingLoss
+
+    if($run -lt $Runs){
+        Write-Host (" Waiting {0} seconds before next run..." -f $WaitBetweenRunsSeconds) -ForegroundColor Gray
+        Start-Sleep -Seconds $WaitBetweenRunsSeconds
+    }
+}
+
+try { Stop-Job $extJob -ErrorAction SilentlyContinue | Out-Null } catch {}
 Write-Host ("`nDONE - results saved to: {0}" -f $LogCsv) -ForegroundColor Green
