@@ -34,14 +34,14 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 
 
 # Parameters
-| Parameter                | Description                                                      | Default Value                      | Example Usage                                  |
-|--------------------------|------------------------------------------------------------------|------------------------------------|------------------------------------------------|
-| `-RemoteFolder`          | UNC path to the remote SMB share                                 | `\\10.10.5.7\MyShare`              | `-RemoteFolder "\\filesrv01\eng"`              |
-| `-LocalFolder`           | Local folder for test file                                       | `C:\Software\copy`                 | `-LocalFolder "C:\temp"`                       |
-| `-FileName`              | Name of the test file to copy                                    | `test_file.iso`                    | `-FileName "win11_install.iso"`                |
-| `-Runs`                  | Number of runs for each direction (download/upload)              | `3`                                | `-Runs 5`                                      |
-| `-WaitBetweenRunsSeconds`| Seconds to wait between runs                                     | `5`                                | `-WaitBetweenRunsSeconds 10`                   |
-| `-LogCsv`                | Path to the CSV log file                                         | `C:\Software\copy\perf_runs_v1.csv`| `-LogCsv "D:\PerfLogs\my_test_results.csv"`     |
+| Parameter                | Description                                                      | Default Value                         | Example Usage                                  |
+|--------------------------|------------------------------------------------------------------|---------------------------------------|------------------------------------------------|
+| `-RemoteFolder`          | UNC path to the remote SMB share                                 | `\\epa01.cyberdyne.local\software`    | `-RemoteFolder "\\filesrv01\eng"`              |
+| `-LocalFolder`           | Local folder for test file                                       | `C:\Software\copy`                    | `-LocalFolder "C:\temp"`                       |
+| `-FileName`              | Name of the test file to copy                                    | `200mb.pdf.iso`                       | `-FileName "win11_install.iso"`                |
+| `-Runs`                  | Number of runs for each direction (download/upload)              | `3`                                   | `-Runs 5`                                      |
+| `-WaitBetweenRunsSeconds`| Seconds to wait between runs                                     | `5`                                   | `-WaitBetweenRunsSeconds 10`                   |
+| `-LogCsv`                | Path to the CSV log file                                         | `C:\Software\copy\perf_runs_v1.3.csv` | `-LogCsv "D:\PerfLogs\my_test_results.csv"`    |
 
 
 
