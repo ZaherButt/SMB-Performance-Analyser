@@ -20,7 +20,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 
    - Place your ISO on both the remote SMB share and your local folder. Customise logfile as needed.
    - Default paths:
-        - Remote: \\epa01.cyberdyne.local\software
+        - Remote: \\\epa01.cyberdyne.local\software
         - Local: C:\Software\copy
         - Filename: 200mb.pdf
         - CSV: C:\Software\copy\perf_runs_v1.3.csv
