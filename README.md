@@ -12,6 +12,7 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 - VPN/client detection (Cloudflare WARP, WireGuard, Entra Private Access)
 - Environment logging: OS version, power plan, WAN IP, NIC details
 - Interactive prompts for client location and connector metadata
+- Auto-generates a random, incompressible test file if one isn't present (no manual ISO needed)
 - Flexible CSV output for downstream analysis
 
 
@@ -24,6 +25,12 @@ This script helps you measure SMB file copy throughput (download and upload) bet
         - Local: C:\Software\copy
         - Filename: 200mb.pdf
         - CSV: C:\Software\copy\perf_runs_v1.3.csv
+   - No file yet? The script auto-generates one for you. If the local test file is missing,
+     it creates a random, incompressible file of `-TestFileSizeMB` (default 200 MB) at the local
+     path — a one-time operation that's then reused for every run. The first upload run copies it
+     to the remote share, so the download test finds it there automatically. Random content means
+     VPN/SMB compression can't inflate your throughput numbers. Pass `-NoAutoGenerate` to keep the
+     old behaviour of exiting with an error when the file is absent.
 
 2. Run the script:
     .\SMBPerformanceComparisonScript_v1.3ps1
@@ -42,6 +49,8 @@ This script helps you measure SMB file copy throughput (download and upload) bet
 | `-Runs`                  | Number of runs for each direction (download/upload)              | `3`                                   | `-Runs 5`                                      |
 | `-WaitBetweenRunsSeconds`| Seconds to wait between runs                                     | `5`                                   | `-WaitBetweenRunsSeconds 10`                   |
 | `-LogCsv`                | Path to the CSV log file                                         | `C:\Software\copy\perf_runs_v1.3.csv` | `-LogCsv "D:\PerfLogs\my_test_results.csv"`    |
+| `-TestFileSizeMB`        | Size (MB) of the auto-generated test file when none exists       | `200`                                 | `-TestFileSizeMB 1024`                         |
+| `-NoAutoGenerate`        | Disable auto-generation; exit with an error if the file is absent| _(off)_                               | `-NoAutoGenerate`                              |
 
 
 
@@ -114,4 +123,7 @@ Q: How do I change where logs are saved?
 A: Use the -LogCsv parameter to specify your preferred log file location. 
 
 Q: What happens if a file is missing? 
-A: The script exits with a clear error message and does not log a row for that run.
+A: If the local test file is missing, the script auto-generates a random, incompressible file of `-TestFileSizeMB` (default 200 MB) and reuses it for every run; the first upload run seeds it onto the remote share. Use `-NoAutoGenerate` to instead exit with a clear error.
+
+Q: Why is the auto-generated file filled with random bytes? 
+A: Random data is incompressible, so VPN clients (e.g. WARP) or SMB compression can't shrink it in transit and inflate your throughput numbers. Generation is a one-time cost (~0.5–1s for 200 MB on SSD).

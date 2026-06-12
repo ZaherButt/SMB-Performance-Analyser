@@ -11,6 +11,9 @@ param(
     [int]$WaitBetweenRunsSeconds = 5,
     [switch]$AcceptDefaults,
     [string]$LogCsv = "C:\Software\copy\perf_runs_v1.3.csv",
+    [ValidateRange(1,1048576)]
+    [int]$TestFileSizeMB = 200,
+    [switch]$NoAutoGenerate,
     [switch]$Zaher
 )
 
@@ -38,6 +41,32 @@ function Ensure-LocalFolder([string]$folderPath){
     if($folderPath -like '\\*'){ return } # safeguard: don't try to create UNC as local folder
     if(-not (Test-Path -LiteralPath $folderPath)){
         New-Item -ItemType Directory -Path $folderPath -Force | Out-Null
+    }
+}
+function New-RandomTestFile {
+    # Creates a file of the requested size filled with cryptographically random
+    # (incompressible) bytes, so VPN/SMB compression cannot skew throughput results.
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][int]$SizeMB
+    )
+    $bytesTotal = [int64]$SizeMB * 1MB
+    $bufferSize = 4MB
+    $buffer = New-Object byte[] $bufferSize
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    $fs  = [System.IO.File]::Open($Path, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write)
+    try {
+        $remaining = $bytesTotal
+        while($remaining -gt 0){
+            $chunk = [int][math]::Min([int64]$bufferSize, $remaining)
+            $rng.GetBytes($buffer)          # fresh random per chunk -> no repeating pattern
+            $fs.Write($buffer, 0, $chunk)
+            $remaining -= $chunk
+        }
+        $fs.Flush()
+    } finally {
+        $fs.Close()
+        $rng.Dispose()
     }
 }
 function ForDisplay([string]$s){
@@ -660,9 +689,26 @@ Ensure-LocalFolder (Split-Path -Parent $dstPathDL)
 Ensure-LocalFolder (Split-Path -Parent $srcPathUL)
 
 if(-not (Test-Path -LiteralPath $srcPathUL)){
-    Write-Host ("ERROR: Local ISO not found: {0}" -f (ForDisplay $srcPathUL)) -ForegroundColor Red
-    Write-Host "Place your ISO at the above path or update -LocalFolder/-FileName, then re-run." -ForegroundColor Yellow
-    exit 99
+    if($NoAutoGenerate){
+        Write-Host ("ERROR: Local test file not found: {0}" -f (ForDisplay $srcPathUL)) -ForegroundColor Red
+        Write-Host "Place your file at the above path or update -LocalFolder/-FileName, then re-run." -ForegroundColor Yellow
+        Write-Host "Tip: omit -NoAutoGenerate to have the script create a random test file automatically." -ForegroundColor Yellow
+        exit 99
+    }
+    Write-Host ""
+    Write-Host ("Local test file not found. Generating a {0} MB random (incompressible) test file..." -f $TestFileSizeMB) -ForegroundColor Yellow
+    Write-Host ("Target : '{0}'" -f $srcPathUL) -ForegroundColor Gray
+    Write-Host "This is a one-time operation; the file is reused for all subsequent runs." -ForegroundColor Gray
+    try {
+        $genSw = [System.Diagnostics.Stopwatch]::StartNew()
+        New-RandomTestFile -Path $srcPathUL -SizeMB $TestFileSizeMB
+        $genSw.Stop()
+        $genMB = [math]::Round(((Get-Item -LiteralPath $srcPathUL).Length)/1MB,2)
+        Write-Host ("[OK] Generated {0} MB in {1:N1}s" -f $genMB,$genSw.Elapsed.TotalSeconds) -ForegroundColor Green
+    } catch {
+        Write-Host ("ERROR: Failed to generate test file: {0}" -f (ForDisplay $_.Exception.Message)) -ForegroundColor Red
+        exit 98
+    }
 }
 
 if(-not $Zaher){ Write-Host "" }
