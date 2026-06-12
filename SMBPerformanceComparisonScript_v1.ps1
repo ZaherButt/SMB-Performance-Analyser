@@ -19,7 +19,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $CopyEngine    = 'CopyItem'
-$ScriptVersion = 'v1.3'
+$ScriptVersion = 'v1.4'
 $ConnectorVersion = 'N/A'
 $ConnectorVMLocation = 'N/A'
 $ConnectorRegion = 'N/A'
